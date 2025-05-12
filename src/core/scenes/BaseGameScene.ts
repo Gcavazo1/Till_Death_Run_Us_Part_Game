@@ -101,11 +101,11 @@ export abstract class BaseGameScene extends Phaser.Scene {
     
     // Setup sound effects
     this.startSound = this.sound.add('start-sound', { volume: 0.7 });
-    this.swipeSound = this.sound.add('swipe-sound', { volume: 0.6 });
+    this.swipeSound = this.sound.add('swipe-sound', { volume: 0.4 });
     this.bouquetSound = this.sound.add('bouquet-sound', { volume: 0.7 });
     this.weddingBandsSound = this.sound.add('wedding-bands-sound', { volume: 0.7 });
     this.gameOverSound = this.sound.add('game-over-sound', { volume: 0.8 });
-    this.collectibleSound = this.sound.add('collectible-sound', { volume: 0.7 });
+    this.collectibleSound = this.sound.add('collectible-sound', { volume: 0.5 });
     this.collideSound = this.sound.add('collide-sound', { volume: 0.8 });
 
     // Define lanes based on mechanic config (platform-specific)
