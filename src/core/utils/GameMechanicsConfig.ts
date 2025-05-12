@@ -44,7 +44,7 @@ export interface GameMechanicsParameters {
 const desktopMechanics: GameMechanicsParameters = {
   // Core gameplay
   gameSpeed: 300,
-  playerSize: 64,
+  playerSize: 58,
   
   // Spawn timing
   obstacleSpawnDelay: 2000,
