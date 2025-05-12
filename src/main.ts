@@ -155,10 +155,17 @@ function createDesktopLayout() {
   // Create footer
   const footer = document.createElement('div');
   footer.id = 'game-footer';
+  
   const copyright = document.createElement('p');
   copyright.id = 'copyright';
-  copyright.innerText = '© 2025 Til Death Run Us Part Game';
+  copyright.innerText = '© 2025 Til Death Run Us Part Game | All Rights Reserved';
+  
+  const credits = document.createElement('p');
+  credits.id = 'credits';
+  credits.innerHTML = 'Developed by Gabriel Cavazos (GigaCode) | <a href="mailto:gigacode.developer@gmail.com">gigacode.developer@gmail.com</a>';
+  
   footer.appendChild(copyright);
+  footer.appendChild(credits);
   gameViewport.appendChild(footer);
   
   // Start the desktop game using the config

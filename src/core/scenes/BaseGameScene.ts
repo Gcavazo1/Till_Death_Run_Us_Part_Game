@@ -45,9 +45,9 @@ export abstract class BaseGameScene extends Phaser.Scene {
   
   // Special collectibles
   protected specialCollectibleTimer!: Phaser.Time.TimerEvent;
-  protected bouquetSpawnChance: number = 0.20; // 20% chance for a bouquet when special timer triggers
-  protected weddingBandSpawnChance: number = 0.10; // 10% chance for a wedding band when special timer triggers
-  protected specialCollectibleSpawnDelay: number = 5000; // Every 5 seconds, attempt to spawn a special collectible
+  protected bouquetSpawnChance: number = 0.17; // 17% chance for a bouquet when special timer triggers
+  protected weddingBandSpawnChance: number = 0.07; // 7% chance for a wedding band when special timer triggers
+  protected specialCollectibleSpawnDelay: number = 8000; // Every 8 seconds, attempt to spawn a special collectible
   
   // Score multiplier system
   protected scoreMultiplier: number = 1; // Default multiplier is 1x

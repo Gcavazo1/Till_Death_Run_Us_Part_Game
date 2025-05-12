@@ -2,71 +2,127 @@
 
 A stylish vertical endless runner game with a gothic zombie bride theme. Run upwards, dodge obstacles, and collect orbs in this spooky, atmospheric game.
 
-## Project Structure
+## Project Overview
 
-The project uses Phaser 3 and Vite. Key files include:
+This is a fast-paced arcade-style endless runner built with Phaser 3 and TypeScript. The game features:
 
-- `src/main.ts`: Main entry point, sets up Phaser game instance.
-- `src/core/scenes/BaseGameScene.ts`: Core game logic and mechanics (player movement, spawning, collisions, scoring, difficulty). Shared between potential future platform variations.
-- `src/desktop/DesktopGameScene.ts`: Desktop-specific scene implementation (currently used).
-- `src/core/utils/AssetLoader.ts`: Handles loading of all game assets.
-- `src/core/utils/GameMechanicsConfig.ts`: Defines game parameters like speed, spawn rates, player size, etc.
-- `assets/`: Contains all image, font, and audio assets.
-- `index.html` & `src/style.css`: HTML structure and CSS for layout, including the iPhone frame and header/footer.
-- `vite.config.js`: Vite configuration, ensures assets are copied during build.
-- `package.json`: Project dependencies and scripts.
-- `tsconfig.json`: TypeScript configuration.
-- `docs/ZOMBIE-BRIDE-CHARACTER-ANIMATION-GUIDE.md`: Documentation for character sprite animations.
+- **Vertical scrolling gameplay** with the character running upwards
+- **Lane-based movement system** with smooth animations
+- **Progressive difficulty** that increases with player score
+- **Collectible system** with regular and special items
+- **Responsive design** that works on both desktop and mobile devices
+- **Atmospheric gothic visuals** with custom character sprites and animations
 
-## Running the Game
+## Getting Started
 
-1.  Install dependencies:
-    ```bash
-    npm install
-    ```
-2.  Start the development server:
-    ```bash
-    npm run dev
-    ```
-3.  Open the game in your browser (usually `http://localhost:5173`).
+### Prerequisites
+
+- Node.js (v14+)
+- npm (v6+)
+
+### Installation
+
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/yourusername/til-death-run-us-part.git
+   cd til-death-run-us-part
+   ```
+
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
+
+3. Start the development server:
+   ```bash
+   npm run dev
+   ```
+
+4. Open your browser to http://localhost:5173 (or the URL shown in your terminal)
+
+### Building for Production
+
+```bash
+npm run build
+```
+
+The built files will be in the `dist` folder.
 
 ## How to Play
 
-**Goal:** Survive as long as possible by dodging obstacles while collecting spirit orbs and special items to maximize your score. The game speeds up over time!
+**Goal:** Survive as long as possible by dodging obstacles while collecting spirit orbs and special items to maximize your score.
 
 **Controls:**
 
-*   **Start Game:** Click/Tap the screen or press the Spacebar.
-*   **Change Lanes:**
-    *   **Desktop:** Left/Right Arrow keys.
-    *   **Mobile:** Swipe Left/Right.
+* **Start Game:** Click/Tap the screen or press the Spacebar
+* **Move Left/Right:**
+  * **Desktop:** Left/Right Arrow keys
+  * **Mobile:** Swipe Left/Right
 
-## Gameplay Features
+**Items:**
+* **Spirit Orbs:** Basic collectibles that give you 1 point each
+* **Wedding Bouquet:** Special collectible worth 10 points
+* **Wedding Bands:** Activates a 2x score multiplier for 10 seconds
 
-*   **Vertical Endless Runner:** Character runs "upwards" automatically.
-*   **Lane-Based Movement:** Switch between three distinct lanes to avoid obstacles.
-*   **Animated Character:** Zombie bride uses sprite sheet animations for running and turning.
-*   **Obstacles:** Dodge tombstones and ghostly spirit orbs.
-*   **Collectibles:** Gather spirit orbs for points. Special wedding bands activate a score multiplier, and wedding bouquets give bonus points.
-*   **Progressive Difficulty:** Game speed increases and obstacles/collectibles spawn faster as your score rises.
-*   **Gothic Atmosphere:** Features a zombie bride character, graveyard theme, spooky music, and visual effects like flying ravens and peering eyes.
-*   **Responsive Layout:** Framed within an iPhone image with a themed header and footer.
+**Obstacles:**
+* **Tombstones and Ghostly Spirits:** Avoid these! Collision ends the game
 
-## Assets Used
+## Project Structure
 
-*   **Player:** 
-    * `zombie_bride_sheet.png` (sprite sheet for animations: running, turning left/right)
-    * Legacy static images: `zombie_bride_back.png`, `zombie_bride_left.png`, `zombie_bride_right.png`
-*   **Obstacles:** `tombstone.png`, `spirit_orb.png`
-*   **Collectibles:** `pink_collectible.png`, `purple_collectible.png`, `red_collectible.png`, `green_collectible.png`, `wedding_bouquet.png`, `wedding_bands.png`
-*   **Background & UI:** `background.png`, `game_over.png`, `iphone_background_landscape08.jpg`
-*   **Visual Effects:** `raven_left.png`, `raven_right.png`, `blue_eyes.png`, `red_eyes.png`, `green_eyes.png`, `yellow_eyes.png`
-*   **Audio:** `spooky_scary_skeletons.mp3`, `spooky_time.mp3`, various SFX (`start.mp3`, `swipe.mp3`, `bouquet.mp3`, `wedding_bands.mp3`, `game_over.mp3`, `collectible.mp3`, `collide.mp3`)
-*   **Fonts:** `OctoberCrow.ttf`, `Corpsy.otf`
+```
+project/
+├── src/
+│   ├── core/
+│   │   ├── scenes/
+│   │   │   └── BaseGameScene.ts     # Core game mechanics shared by all platforms
+│   │   ├── utils/
+│   │   │   ├── AssetLoader.ts       # Asset loading logic
+│   │   │   └── GameMechanicsConfig.ts  # Platform-specific game parameters
+│   │   ├── desktop/
+│   │   └── DesktopGameScene.ts      # Desktop-specific implementation
+│   │   └── mobile/
+│   │       └── MobileGameScene.ts       # Mobile-specific implementation
+│   │   └── main.ts                      # Entry point with platform detection
+│   └── style.css                    # Game styling
+├── assets/                          # Game assets (images, audio, fonts)
+├── docs/                            # Documentation files
+│   ├── GAME-MECHANICS.md            # Detailed game mechanics documentation
+│   ├── MOBILE-DESKTOP-CONFIG-GUIDE.md  # Platform-specific configuration guide
+│   └── ZOMBIE-BRIDE-CHARACTER-ANIMATION-GUIDE.md  # Character animation documentation
+├── index.html                       # Main HTML file
+├── vite.config.js                   # Vite build configuration
+└── package.json                     # Project dependencies and scripts
+```
+
+## Key Features Implementation
+
+### Progressive Difficulty
+
+The game's difficulty increases as the player scores more points:
+- Speed increases every 100 points
+- Obstacle spawn rate increases
+- Collectible spawn rate increases
+- Maximum difficulty is capped at level 10
+
+### Character Animation
+
+The zombie bride character uses a sprite sheet with:
+- 8-frame running animation
+- 4-frame turning right animation 
+- 4-frame turning left animation
+
+### Atmospheric Elements
+
+- Flying ravens that cross the screen periodically
+- Glowing eyes that peer from the background
+- Gothic-themed UI elements and fonts
+- Spooky soundtrack and sound effects
 
 ## Credits
 
-*   **Developer:** Gabriel Cavazos (GigaCode)
-*   **Support:** gigacode.developer@gmail.com
+- **Developer:** Gabriel Cavazos (GigaCode)
+- **Contact:** gigacode.developer@gmail.com
 
-*(Asset sources should be added here if applicable)*
+## License
+
+This project is licensed under the MIT License - see the LICENSE file for details.

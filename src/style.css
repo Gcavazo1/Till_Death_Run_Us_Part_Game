@@ -192,7 +192,7 @@ body {
   justify-content: center;
   align-items: center;
   z-index: 20;
-  background: linear-gradient(135deg, #2b0000 0%, #660033 50%, #330066 100%);
+  background: linear-gradient(135deg, #2b0000 0%, #000000 50%, #20003f 100%);
   box-shadow: 0 5px 15px rgba(0, 16, 133, 0.3);
   border-bottom: 1px solid #3f0086;
 }
@@ -310,4 +310,23 @@ body {
   font-size: 0.9rem;
   color: #aaa;
   text-align: center;
+  margin: 0;
+}
+
+#credits {
+  margin: 5px 0 0 0;
+  color: #b08aff;
+  font-size: 14px;
+  text-align: center;
+}
+
+#credits a {
+  color: #ff9adf;
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+#credits a:hover {
+  color: #ffffff;
+  text-decoration: underline;
 } 
