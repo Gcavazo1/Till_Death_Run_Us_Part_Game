@@ -24,6 +24,31 @@ export class PreloadScene extends Phaser.Scene {
     });
     loadingText.setOrigin(0.5, 0.5);
 
+    // Setup error handler for missing sprite sheet
+    this.load.on('loaderror', (fileObj: any) => {
+      if (fileObj.key === 'zombieBride') {
+        console.error('Failed to load zombie bride sprite sheet. Creating placeholder.');
+        
+        // Create placeholder message for the user
+        const errorText = this.add.text(width / 2, height / 2 + 40, 
+          'Missing sprite sheet: please add zombie_bride_sheet.png\nto assets/images/ directory.', 
+          {
+            font: '16px Arial',
+            color: '#ff0000',
+            align: 'center'
+          }
+        );
+        errorText.setOrigin(0.5, 0.5);
+        
+        // Wait 3 seconds before continuing
+        this.time.delayedCall(3000, () => {
+          errorText.destroy();
+          // Allow game to continue using static images as fallback
+          console.log('Continuing with static images as fallback...');
+        });
+      }
+    });
+
     // Load common assets
     this.assetLoader.loadCommonAssets();
 

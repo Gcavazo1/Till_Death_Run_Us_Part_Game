@@ -115,8 +115,18 @@ export abstract class BaseGameScene extends Phaser.Scene {
     // Setup background - Note: Implementation may vary between desktop/mobile
     this.setupBackground(gameWidth, gameHeight);
     
+    // Create animations for the zombie bride character
+    this.createPlayerAnimations();
+    
     // Create player character at the bottom-center lane
-    this.player = this.physics.add.sprite(this.lanes[this.currentLane], this.playerFixedY, 'player');
+    // Try to use sprite sheet first, fall back to static image if not available
+    if (this.textures.exists('zombieBride')) {
+      this.player = this.physics.add.sprite(this.lanes[this.currentLane], this.playerFixedY, 'zombieBride');
+    } else {
+      console.warn('Using static images as fallback for zombie bride');
+      this.player = this.physics.add.sprite(this.lanes[this.currentLane], this.playerFixedY, 'player');
+    }
+    
     this.player.setDisplaySize(this.mechanics.playerSize, this.mechanics.playerSize); // Platform-specific size
     this.player.setVisible(false); // Hide player until game starts
 
@@ -210,6 +220,41 @@ export abstract class BaseGameScene extends Phaser.Scene {
   // Method to be implemented by platform-specific scenes
   protected abstract setupBackground(gameWidth: number, gameHeight: number): void;
 
+  /**
+   * Creates all animations for the player character
+   */
+  protected createPlayerAnimations(): void {
+    // Check if zombieBride texture exists
+    if (!this.textures.exists('zombieBride')) {
+      console.warn('Zombie bride sprite sheet not found. Animations will not be created.');
+      return;
+    }
+    
+    // Running animation (A1-A4, B1-B4 - frames 0-7)
+    this.anims.create({
+      key: 'zombie_run',
+      frames: this.anims.generateFrameNumbers('zombieBride', { start: 0, end: 7 }),
+      frameRate: 10,
+      repeat: -1 // Loop continuously
+    });
+    
+    // Turn right animation (C1-C4 - frames 8-11)
+    this.anims.create({
+      key: 'zombie_turn_right',
+      frames: this.anims.generateFrameNumbers('zombieBride', { start: 8, end: 11 }),
+      frameRate: 8,
+      repeat: 0 // Play once
+    });
+    
+    // Turn left animation (D1-D4 - frames 12-15)
+    this.anims.create({
+      key: 'zombie_turn_left',
+      frames: this.anims.generateFrameNumbers('zombieBride', { start: 12, end: 15 }),
+      frameRate: 8,
+      repeat: 0 // Play once
+    });
+  }
+
   protected startGame() {
     // Show player and score
     this.player.setVisible(true);
@@ -218,6 +263,11 @@ export abstract class BaseGameScene extends Phaser.Scene {
     
     // Start the game
     this.gameStarted = true;
+    
+    // Start player running animation if sprite sheet is available
+    if (this.textures.exists('zombieBride') && this.anims.exists('zombie_run')) {
+      this.player.anims.play('zombie_run', true);
+    }
     
     // Play start sound
     this.startSound.play();
@@ -691,16 +741,14 @@ export abstract class BaseGameScene extends Phaser.Scene {
     // Change lanes (left/right arrows or swipes)
     if (!this.isChangingLane) {
       if (Phaser.Input.Keyboard.JustDown(this.cursors.left!) && this.currentLane > 0) {
-        this.changeLane(this.currentLane - 1);
-        this.player.setTexture('player-left');
+        this.changeLane(this.currentLane - 1, 'left');
       } else if (Phaser.Input.Keyboard.JustDown(this.cursors.right!) && this.currentLane < this.lanes.length - 1) {
-        this.changeLane(this.currentLane + 1);
-        this.player.setTexture('player-right');
+        this.changeLane(this.currentLane + 1, 'right');
       }
     }
   }
   
-  protected changeLane(newLane: number) {
+  protected changeLane(newLane: number, direction: 'left' | 'right' = 'right') {
     if (this.isChangingLane) return;
     
     this.isChangingLane = true;
@@ -708,6 +756,18 @@ export abstract class BaseGameScene extends Phaser.Scene {
     
     // Play swipe sound
     this.swipeSound.play();
+    
+    // Use animations if available, otherwise fall back to static images
+    if (this.textures.exists('zombieBride')) {
+      // Play the appropriate turn animation based on direction
+      const animKey = direction === 'left' ? 'zombie_turn_left' : 'zombie_turn_right';
+      if (this.anims.exists(animKey)) {
+        this.player.anims.play(animKey, true);
+      }
+    } else {
+      // Fall back to static textures
+      this.player.setTexture(direction === 'left' ? 'player-left' : 'player-right');
+    }
     
     // Tween the player to the new lane
     this.tweens.add({
@@ -718,7 +778,11 @@ export abstract class BaseGameScene extends Phaser.Scene {
       onComplete: () => {
         this.isChangingLane = false;
         // Switch back to running forward after lane change animation
-        this.player.setTexture('player');
+        if (this.textures.exists('zombieBride') && this.anims.exists('zombie_run')) {
+          this.player.anims.play('zombie_run', true);
+        } else {
+          this.player.setTexture('player');
+        }
       }
     });
   }
@@ -742,11 +806,9 @@ export abstract class BaseGameScene extends Phaser.Scene {
       // Only respond to horizontal swipes for lane changes
       if (Math.abs(swipeX) > Math.abs(swipeY) && Math.abs(swipeX) > swipeThreshold) {
         if (swipeX < 0 && this.currentLane > 0) {
-          this.changeLane(this.currentLane - 1);
-          this.player.setTexture('player-left');
+          this.changeLane(this.currentLane - 1, 'left');
         } else if (swipeX > 0 && this.currentLane < this.lanes.length - 1) {
-          this.changeLane(this.currentLane + 1);
-          this.player.setTexture('player-right');
+          this.changeLane(this.currentLane + 1, 'right');
         }
       }
     });
@@ -1211,7 +1273,7 @@ export abstract class BaseGameScene extends Phaser.Scene {
     // Reset player
     this.player.setTint(0xffffff); // Remove any tint
     this.player.setAlpha(1); // Reset alpha
-    this.player.setTexture('player'); // Reset texture
+    this.player.anims.stop(); // Stop any animations playing
     
     // Clear lane tracking arrays
     this.recentObstacleLanes = [];

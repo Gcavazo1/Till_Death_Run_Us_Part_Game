@@ -14,7 +14,13 @@ export class AssetLoader {
    * Loads common assets needed by both desktop and mobile versions
    */
   loadCommonAssets(): void {
-    // Player assets
+    // Player sprite sheet for animations
+    this.scene.load.spritesheet('zombieBride', '/images/zombie_bride_sheet.png', {
+      frameWidth: 32,
+      frameHeight: 64
+    });
+    
+    // Legacy player assets (kept as fallbacks)
     this.scene.load.image('player', '/images/zombie_bride_back.png');
     this.scene.load.image('player-left', '/images/zombie_bride_left.png');
     this.scene.load.image('player-right', '/images/zombie_bride_right.png');
