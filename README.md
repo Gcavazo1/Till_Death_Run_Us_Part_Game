@@ -16,6 +16,7 @@ The project uses Phaser 3 and Vite. Key files include:
 - `vite.config.js`: Vite configuration, ensures assets are copied during build.
 - `package.json`: Project dependencies and scripts.
 - `tsconfig.json`: TypeScript configuration.
+- `docs/ZOMBIE-BRIDE-CHARACTER-ANIMATION-GUIDE.md`: Documentation for character sprite animations.
 
 ## Running the Game
 
@@ -44,6 +45,7 @@ The project uses Phaser 3 and Vite. Key files include:
 
 *   **Vertical Endless Runner:** Character runs "upwards" automatically.
 *   **Lane-Based Movement:** Switch between three distinct lanes to avoid obstacles.
+*   **Animated Character:** Zombie bride uses sprite sheet animations for running and turning.
 *   **Obstacles:** Dodge tombstones and ghostly spirit orbs.
 *   **Collectibles:** Gather spirit orbs for points. Special wedding bands activate a score multiplier, and wedding bouquets give bonus points.
 *   **Progressive Difficulty:** Game speed increases and obstacles/collectibles spawn faster as your score rises.
@@ -52,7 +54,9 @@ The project uses Phaser 3 and Vite. Key files include:
 
 ## Assets Used
 
-*   **Player:** `zombie_bride_back.png`, `zombie_bride_left.png`, `zombie_bride_right.png`
+*   **Player:** 
+    * `zombie_bride_sheet.png` (sprite sheet for animations: running, turning left/right)
+    * Legacy static images: `zombie_bride_back.png`, `zombie_bride_left.png`, `zombie_bride_right.png`
 *   **Obstacles:** `tombstone.png`, `spirit_orb.png`
 *   **Collectibles:** `pink_collectible.png`, `purple_collectible.png`, `red_collectible.png`, `green_collectible.png`, `wedding_bouquet.png`, `wedding_bands.png`
 *   **Background & UI:** `background.png`, `game_over.png`, `iphone_background_landscape08.jpg`
