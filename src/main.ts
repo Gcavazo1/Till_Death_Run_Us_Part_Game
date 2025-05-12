@@ -46,14 +46,52 @@ function preloadFonts(callback: () => void) {
   }
 }
 
+// Function to animate the vows in sequence
+function animateVows() {
+  const vowLines = document.querySelectorAll('.vow-line');
+  const delayBetweenLines = 2000; // 2 seconds between each line
+  const vowsContainer = document.getElementById('vows-loader');
+  const gameViewport = document.getElementById('game-viewport');
+  
+  // Calculate total animation time
+  const totalAnimationTime = vowLines.length * delayBetweenLines + 2000; // Extra time at end
+  
+  // Animate each line with a delay
+  vowLines.forEach((line, index) => {
+    setTimeout(() => {
+      line.classList.add('visible');
+    }, index * delayBetweenLines);
+  });
+  
+  // After all lines are shown and some extra time has passed, fade out the loader and show the game
+  setTimeout(() => {
+    if (vowsContainer && gameViewport) {
+      // Add fade out animation to the loader
+      vowsContainer.classList.add('fade-out');
+      
+      // After the fade animation completes, hide the loader and show the game
+      setTimeout(() => {
+        vowsContainer.style.display = 'none';
+        gameViewport.style.visibility = 'visible';
+        
+        // Initialize the app after vows are shown
+        initApp();
+      }, 1500); // Time for fade out animation to complete
+    }
+  }, totalAnimationTime);
+}
+
 // Initialize the app based on device type
 function initApp() {
   // Get the app container
   const appContainer = document.getElementById('app');
   if (!appContainer) return;
   
-  // Clear all existing HTML
-  document.body.innerHTML = '';
+  // Remove the game viewport that was created in the static HTML
+  const existingViewport = document.getElementById('game-viewport');
+  if (existingViewport) {
+    document.body.removeChild(existingViewport);
+  }
   
   if (GameConfig.isMobileDevice()) {
     // Mobile version: Create completely fresh DOM structure
@@ -232,7 +270,10 @@ declare global {
   }
 }
 
-// Initialize the app after preloading fonts
+// Initialize the animation sequence after preloading fonts
 document.addEventListener('DOMContentLoaded', () => {
-  preloadFonts(initApp);
+  preloadFonts(() => {
+    // Start vow animation sequence after fonts are loaded
+    animateVows();
+  });
 });

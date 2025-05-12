@@ -50,6 +50,53 @@ body {
   height: 100%;
 }
 
+/* Vows Loading Screen */
+#vows-loader {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 9999;
+  background: linear-gradient(to bottom, #000000 0%, #1a0522 50%, #000000 100%);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+}
+
+#vows-container {
+  width: 90%;
+  max-width: 800px;
+  text-align: center;
+}
+
+.vow-line {
+  font-family: 'Corpsy', serif;
+  font-size: 2rem;
+  color: #cccccc;
+  margin-bottom: 1.5rem;
+  opacity: 0;
+  transform: translateY(20px);
+  text-shadow: 0 0 8px rgba(150, 0, 255, 0.5);
+  transition: opacity 1.5s ease-in-out, transform 1.5s ease-in-out;
+}
+
+/* Animation classes */
+.vow-line.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+@keyframes fadeOut {
+  0% { opacity: 1; }
+  100% { opacity: 0; visibility: hidden; }
+}
+
+.fade-out {
+  animation: fadeOut 1.5s forwards;
+}
+
 /* MOBILE STYLES */
 .mobile-body {
   position: fixed;
