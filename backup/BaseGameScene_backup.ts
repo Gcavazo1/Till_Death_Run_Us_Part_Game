@@ -31,15 +31,15 @@ export abstract class BaseGameScene extends Phaser.Scene {
   // Game state
   protected lanes!: number[]; // X-coordinates for the center of each vertical lane
   protected currentLane: number = 1; // Start in the middle lane (index 1)
-  protected gameSpeed: number = 340; // Speed at which the game scrolls
+  protected gameSpeed: number = 300; // Speed at which the game scrolls
   protected score: number = 0;
   protected scoreText!: Phaser.GameObjects.Text;
   protected isGameOver: boolean = false;
   protected gameStarted: boolean = false; // Track if game has started
   protected obstacleTimer!: Phaser.Time.TimerEvent;
-  protected obstacleSpawnDelay: number = 1600; // Updated to match new config value
+  protected obstacleSpawnDelay: number = 2000; // Store the delay separately to manage it
   protected collectibleTimer!: Phaser.Time.TimerEvent; // Timer for spawning collectibles
-  protected collectibleSpawnDelay: number = 160; // More frequent collectibles (was 400)
+  protected collectibleSpawnDelay: number = 180; // More frequent collectibles (was 400)
   protected ravenTimer!: Phaser.Time.TimerEvent; // Timer for spawning ravens
   protected spookyEyesTimer!: Phaser.Time.TimerEvent; // Timer for spawning spooky eyes
   
@@ -72,8 +72,8 @@ export abstract class BaseGameScene extends Phaser.Scene {
   protected difficultyLevel: number = 1;
   protected nextSpeedIncreaseThreshold: number = 100; // First threshold at 100 points
   protected pointsPerSpeedIncrease: number = 100; // Increase speed every 100 points
-  protected speedIncreaseAmount: number = 35; // Add 30 to gameSpeed each threshold
-  protected speedIncreasePercentage: number = 0.12; // Reduce spawn delays by 10% each threshold
+  protected speedIncreaseAmount: number = 35; // Add 35 to gameSpeed each threshold
+  protected speedIncreasePercentage: number = 0.12; // Reduce spawn delays by 12% each threshold
   protected maxDifficultyLevel: number = 10; // Cap difficulty increases to prevent impossible gameplay
   protected difficultyText!: Phaser.GameObjects.Text; // Display current difficulty level
 
@@ -105,7 +105,7 @@ export abstract class BaseGameScene extends Phaser.Scene {
     this.bouquetSound = this.sound.add('bouquet-sound', { volume: 0.7 });
     this.weddingBandsSound = this.sound.add('wedding-bands-sound', { volume: 0.7 });
     this.gameOverSound = this.sound.add('game-over-sound', { volume: 0.8 });
-    this.collectibleSound = this.sound.add('collectible-sound', { volume: 0.7 });
+    this.collectibleSound = this.sound.add('collectible-sound', { volume: 0.5 });
     this.collideSound = this.sound.add('collide-sound', { volume: 0.8 });
 
     // Define lanes based on mechanic config (platform-specific)
@@ -119,14 +119,18 @@ export abstract class BaseGameScene extends Phaser.Scene {
     this.createPlayerAnimations();
     
     // Create player character at the bottom-center lane
-    // Try to use sprite sheet first, fall back to static image if not available
-    if (this.textures.exists('zombieBride')) {
-      this.player = this.physics.add.sprite(this.lanes[this.currentLane], this.playerFixedY, 'zombieBride');
-    } else {
-      console.warn('Using static images as fallback for zombie bride');
-      this.player = this.physics.add.sprite(this.lanes[this.currentLane], this.playerFixedY, 'player');
+    // The 'zombieBride' spritesheet is essential for the player.
+    if (!this.textures.exists('zombieBride')) {
+        console.error('CRITICAL ERROR: Texture with key "zombieBride" not found. Cannot create player.');
+        // Optionally, stop the scene or handle this critical error
+        // For now, we'll just prevent creating the sprite to avoid Phaser errors
+        // throw new Error('Missing critical player asset: zombieBride'); 
+        return; // Stop create() execution here if the asset is missing
     }
     
+    // If the texture exists, create the physics sprite
+    this.player = this.physics.add.sprite(this.lanes[this.currentLane], this.playerFixedY, 'zombieBride');
+        
     this.player.setDisplaySize(this.mechanics.playerSize, this.mechanics.playerSize); // Platform-specific size
     this.player.setVisible(false); // Hide player until game starts
 
@@ -757,17 +761,15 @@ export abstract class BaseGameScene extends Phaser.Scene {
     // Play swipe sound
     this.swipeSound.play();
     
-    // Use animations if available, otherwise fall back to static images
-    if (this.textures.exists('zombieBride')) {
-      // Play the appropriate turn animation based on direction
+    // Use animations if available
+    if (this.textures.exists('zombieBride')) { // Check texture exists again (though it should)
       const animKey = direction === 'left' ? 'zombie_turn_left' : 'zombie_turn_right';
       if (this.anims.exists(animKey)) {
         this.player.anims.play(animKey, true);
+      } else {
+        console.warn(`Animation key ${animKey} not found for zombieBride.`);
       }
-    } else {
-      // Fall back to static textures
-      this.player.setTexture(direction === 'left' ? 'player-left' : 'player-right');
-    }
+    } // No else needed, we depend on zombieBride now
     
     // Tween the player to the new lane
     this.tweens.add({
@@ -780,9 +782,7 @@ export abstract class BaseGameScene extends Phaser.Scene {
         // Switch back to running forward after lane change animation
         if (this.textures.exists('zombieBride') && this.anims.exists('zombie_run')) {
           this.player.anims.play('zombie_run', true);
-        } else {
-          this.player.setTexture('player');
-        }
+        } // No else needed
       }
     });
   }
@@ -1260,7 +1260,7 @@ export abstract class BaseGameScene extends Phaser.Scene {
     // Reset game variables
     this.score = 0;
     this.gameSpeed = 300;
-    this.obstacleSpawnDelay = 1600;
+    this.obstacleSpawnDelay = 2000;
     this.collectibleSpawnDelay = 200;
     this.specialCollectibleSpawnDelay = 5000;
     this.difficultyLevel = 1;

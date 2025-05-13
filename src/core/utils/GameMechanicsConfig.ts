@@ -47,7 +47,7 @@ const desktopMechanics: GameMechanicsParameters = {
   playerSize: 58,
   
   // Spawn timing
-  obstacleSpawnDelay: 2000,
+  obstacleSpawnDelay: 1600,
   collectibleSpawnDelay: 200,
   specialCollectibleSpawnDelay: 5000,
   laneAvoidanceTime: 500,
@@ -63,8 +63,8 @@ const desktopMechanics: GameMechanicsParameters = {
   // Difficulty progression
   difficultyLevel: 1,
   pointsPerSpeedIncrease: 100,
-  speedIncreaseAmount: 30,
-  speedIncreasePercentage: 0.10,
+  speedIncreaseAmount: 35,
+  speedIncreasePercentage: 0.12,
   maxDifficultyLevel: 10,
   
   // Input settings
@@ -81,11 +81,11 @@ const desktopMechanics: GameMechanicsParameters = {
  */
 const mobileMechanics: GameMechanicsParameters = {
   // Core gameplay - slower on mobile to compensate for faster browser rendering
-  gameSpeed: 120, // Reduced from 350 to be slower than desktop (300)
+  gameSpeed: 110, // Reduced from 350 to be slower than desktop (300)
   playerSize: 56,
   
   // Spawn timing - slower spawn rates to compensate for mobile 
-  obstacleSpawnDelay: 1800, // Increased from 1800 to be slower than desktop
+  obstacleSpawnDelay: 1400,
   collectibleSpawnDelay: 150, // Increased from 180 to be slower than desktop
   specialCollectibleSpawnDelay: 4500, // Increased from 4500 to be slower than desktop
   laneAvoidanceTime: 500, // Keep the same

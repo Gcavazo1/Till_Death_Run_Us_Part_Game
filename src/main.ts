@@ -2,6 +2,82 @@ import './style.css'
 import Phaser from 'phaser'
 import { GameConfig } from './core/utils/GameConfig'
 
+// --- WAKE LOCK START ---
+// Type definition for WakeLockSentinel
+interface WakeLockSentinel extends EventTarget {
+    readonly released: boolean;
+    readonly type: string;
+    release(): Promise<void>;
+    onrelease: ((this: WakeLockSentinel, ev: Event) => any) | null;
+}
+
+// Modify the global Window interface
+declare global {
+  interface Window {
+    game: Phaser.Game;
+  }
+  interface Navigator {
+      wakeLock?: { // Make wakeLock optional as it might not exist
+          request: (type: 'screen') => Promise<WakeLockSentinel>;
+      };
+  }
+}
+
+let wakeLock: WakeLockSentinel | null = null;
+
+// Function to request the wake lock
+const requestWakeLock = async () => {
+  // Check if wakeLock is supported and if a lock doesn't already exist or has been released
+  if ('wakeLock' in navigator && navigator.wakeLock && (wakeLock === null || wakeLock.released)) {
+    try {
+      wakeLock = await navigator.wakeLock.request('screen');
+      wakeLock.addEventListener('release', () => {
+        // Wake lock was released unexpectedly (e.g., page hidden, battery low)
+        console.log('Screen Wake Lock released automatically.');
+        // No need to re-request here; visibilitychange handles it if page becomes visible again
+      });
+      console.log('Screen Wake Lock active.');
+    } catch (err: any) {
+      console.error(`Wake Lock request failed: ${err.name}, ${err.message}`);
+      wakeLock = null; // Ensure wakeLock is null if request fails
+    }
+  } else if (!('wakeLock' in navigator && navigator.wakeLock)) {
+    console.log('Wake Lock API not supported by this browser.');
+  } else {
+    console.log('Wake Lock already active or request attempted while existing lock present.');
+  }
+};
+
+// Function to release the wake lock
+const releaseWakeLock = async () => {
+  if (wakeLock !== null && !wakeLock.released) {
+    try {
+        await wakeLock.release();
+        console.log('Screen Wake Lock explicitly released.');
+    } catch (err: any) {
+        console.error(`Wake Lock release failed: ${err.name}, ${err.message}`);
+    } finally {
+        wakeLock = null; // Set to null after attempting release
+    }
+  }
+};
+
+// Handle visibility changes
+const handleVisibilityChange = async () => {
+    if (wakeLock !== null && document.visibilityState === 'hidden') {
+        // Release the lock when the tab is hidden
+       await releaseWakeLock();
+       console.log('Wake Lock released due to page visibility change (hidden).');
+    } else if (document.visibilityState === 'visible') {
+       // Re-acquire the lock when the tab becomes visible again
+       console.log('Page visible, attempting to re-acquire Wake Lock...');
+       await requestWakeLock();
+    }
+};
+
+document.addEventListener('visibilitychange', handleVisibilityChange);
+// --- WAKE LOCK END ---
+
 // Function to preload custom fonts
 function preloadFonts(callback: () => void) {
   // Create a div with each font to force loading
@@ -170,6 +246,28 @@ function createDesktopLayout() {
   
   // Start the desktop game using the config
   window.game = new Phaser.Game(GameConfig.getDesktopConfig());
+
+  // --- Wake Lock for Desktop (Optional) ---
+  requestWakeLock(); // Request lock immediately for desktop too
+
+  // Add listeners to release/re-acquire lock on game events (IMPORTANT)
+  // These events need to be emitted from your BaseGameScene
+  window.game.events.on('game_over_event', releaseWakeLock);
+  window.game.events.on('pause_event', releaseWakeLock);
+  window.game.events.on('resume_event', requestWakeLock);
+  window.game.events.on('scene_shutdown_event', releaseWakeLock);
+
+   // Clean up event listeners when the game instance is destroyed (optional but good practice)
+   window.game.events.once(Phaser.Core.Events.DESTROY, () => {
+       releaseWakeLock(); // Ensure lock is released
+       document.removeEventListener('visibilitychange', handleVisibilityChange); // Might remove listener needed by mobile if shared? Be careful or separate logic.
+       window.game.events.off('game_over_event', releaseWakeLock);
+       window.game.events.off('pause_event', releaseWakeLock);
+       window.game.events.off('resume_event', requestWakeLock);
+       window.game.events.off('scene_shutdown_event', releaseWakeLock);
+       console.log('Cleaned up Wake Lock listeners on game destroy.');
+   });
+  // --- End Wake Lock for Desktop ---
 }
 
 // Create a mobile landing page
@@ -241,6 +339,9 @@ function startMobileGameFullScreen() {
   gameContainer.className = 'mobile-game-container';
   document.body.appendChild(gameContainer);
   
+  // Request wake lock when game starts
+  requestWakeLock(); // Request lock immediately for mobile
+  
   // Start the mobile game with config
   window.game = new Phaser.Game(GameConfig.getMobileConfig());
   
@@ -259,6 +360,24 @@ function startMobileGameFullScreen() {
   // Ensure canvas is properly sized
   window.addEventListener('resize', resize);
   setTimeout(resize, 100);
+
+  // Add listeners to release/re-acquire lock on game events (IMPORTANT)
+  // These events need to be emitted from your BaseGameScene
+  window.game.events.on('game_over_event', releaseWakeLock); // Release on game over
+  window.game.events.on('pause_event', releaseWakeLock);     // Release on pause
+  window.game.events.on('resume_event', requestWakeLock);    // Re-acquire on resume
+  window.game.events.on('scene_shutdown_event', releaseWakeLock); // Release when scene shuts down
+
+  // Clean up event listeners when the game instance is destroyed (optional but good practice)
+   window.game.events.once(Phaser.Core.Events.DESTROY, () => {
+       releaseWakeLock(); // Ensure lock is released
+       document.removeEventListener('visibilitychange', handleVisibilityChange);
+       window.game.events.off('game_over_event', releaseWakeLock);
+       window.game.events.off('pause_event', releaseWakeLock);
+       window.game.events.off('resume_event', requestWakeLock);
+       window.game.events.off('scene_shutdown_event', releaseWakeLock);
+       console.log('Cleaned up Wake Lock listeners on game destroy.');
+   });
 }
 
 // Request fullscreen mode
@@ -270,13 +389,6 @@ function requestFullscreen() {
   }
 }
 
-// Add Phaser game to Window interface
-declare global {
-  interface Window {
-    game: Phaser.Game;
-  }
-}
-
 // Initialize the animation sequence after preloading fonts
 document.addEventListener('DOMContentLoaded', () => {
   preloadFonts(() => {
@@ -284,3 +396,7 @@ document.addEventListener('DOMContentLoaded', () => {
     animateVows();
   });
 });
+
+// Ensure wake lock is released if the user navigates away or closes the tab
+window.addEventListener('pagehide', releaseWakeLock);
+window.addEventListener('beforeunload', releaseWakeLock); // Best effort for unload
