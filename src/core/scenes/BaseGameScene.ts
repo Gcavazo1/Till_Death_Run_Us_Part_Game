@@ -1,6 +1,10 @@
 import Phaser from 'phaser';
 import { GameMechanicsConfig } from '../utils/GameMechanicsConfig';
 import type { GameMechanicsParameters } from '../utils/GameMechanicsConfig';
+import { GameConfig } from '../utils/GameConfig';
+import { LeaderboardService } from '../services/LeaderboardService';
+import { NameEntryModal } from '../ui/NameEntryModal';
+import { LeaderboardModal } from '../ui/LeaderboardModal';
 
 export abstract class BaseGameScene extends Phaser.Scene {
   // Game mechanics configuration (loaded based on platform)
@@ -15,6 +19,8 @@ export abstract class BaseGameScene extends Phaser.Scene {
   protected spookyEyes!: Phaser.GameObjects.Group; // Group for spooky eyes visual effects
   protected backgroundMusic!: Phaser.Sound.BaseSound;
   protected backgroundMusicAlt!: Phaser.Sound.BaseSound; // Alternative music track
+  protected backgroundMusicCorpseBride!: Phaser.Sound.BaseSound; // Third music track
+  protected backgroundMusicEndlessBride!: Phaser.Sound.BaseSound; // Fourth music track
   
   // Sound effects
   protected startSound!: Phaser.Sound.BaseSound;
@@ -47,7 +53,7 @@ export abstract class BaseGameScene extends Phaser.Scene {
   protected specialCollectibleTimer!: Phaser.Time.TimerEvent;
   protected bouquetSpawnChance: number = 0.17; // 17% chance for a bouquet when special timer triggers
   protected weddingBandSpawnChance: number = 0.07; // 7% chance for a wedding band when special timer triggers
-  protected specialCollectibleSpawnDelay: number = 8000; // Every 8 seconds, attempt to spawn a special collectible
+  protected specialCollectibleSpawnDelay: number = 10000; // Every 8 seconds, attempt to spawn a special collectible
   
   // Score multiplier system
   protected scoreMultiplier: number = 1; // Default multiplier is 1x
@@ -77,6 +83,12 @@ export abstract class BaseGameScene extends Phaser.Scene {
   protected maxDifficultyLevel: number = 10; // Cap difficulty increases to prevent impossible gameplay
   protected difficultyText!: Phaser.GameObjects.Text; // Display current difficulty level
 
+  // Add new properties for leaderboard
+  protected leaderboardService!: LeaderboardService;
+  protected nameEntryModal!: NameEntryModal;
+  protected leaderboardModal!: LeaderboardModal;
+  protected isModalOpen: boolean = false;
+
   constructor(key: string) {
     super(key);
     // Get platform-specific mechanics configuration
@@ -95,6 +107,18 @@ export abstract class BaseGameScene extends Phaser.Scene {
     
     // Setup alternative background music
     this.backgroundMusicAlt = this.sound.add('background-music-alt', {
+      volume: 0.5,
+      loop: true
+    });
+
+    // Setup third background music track
+    this.backgroundMusicCorpseBride = this.sound.add('background-music-corpse-bride', {
+      volume: 0.5,
+      loop: true
+    });
+    
+    // Setup fourth background music track
+    this.backgroundMusicEndlessBride = this.sound.add('background-music-endless-bride', {
       volume: 0.5,
       loop: true
     });
@@ -215,6 +239,11 @@ export abstract class BaseGameScene extends Phaser.Scene {
     this.speedIncreaseAmount = this.mechanics.speedIncreaseAmount;
     this.speedIncreasePercentage = this.mechanics.speedIncreasePercentage;
     this.maxDifficultyLevel = this.mechanics.maxDifficultyLevel;
+
+    // Initialize leaderboard service and modals
+    this.leaderboardService = new LeaderboardService();
+    this.nameEntryModal = new NameEntryModal(this);
+    this.leaderboardModal = new LeaderboardModal(this);
   }
 
   // Method to be implemented by platform-specific scenes
@@ -275,14 +304,19 @@ export abstract class BaseGameScene extends Phaser.Scene {
     // Get the last played track from local storage
     let lastPlayedTrack = localStorage.getItem('lastPlayedMusicTrack');
     
-    // If no record exists or last played was alt, play the main track
-    if (!lastPlayedTrack || lastPlayedTrack === 'alt') {
+    // Cycle through four tracks: main, alt, corpse_bride, endless_bride
+    if (!lastPlayedTrack || lastPlayedTrack === 'endless_bride') {
       this.backgroundMusic.play();
       localStorage.setItem('lastPlayedMusicTrack', 'main');
-    } else {
-      // Otherwise play the alternative track
+    } else if (lastPlayedTrack === 'main') {
       this.backgroundMusicAlt.play();
       localStorage.setItem('lastPlayedMusicTrack', 'alt');
+    } else if (lastPlayedTrack === 'alt') {
+      this.backgroundMusicCorpseBride.play();
+      localStorage.setItem('lastPlayedMusicTrack', 'corpse_bride');
+    } else { // lastPlayedTrack === 'corpse_bride'
+      this.backgroundMusicEndlessBride.play();
+      localStorage.setItem('lastPlayedMusicTrack', 'endless_bride');
     }
     
     // Reset difficulty parameters
@@ -737,7 +771,11 @@ export abstract class BaseGameScene extends Phaser.Scene {
     });
   }
 
+  // Handle keyboard input for lane changes, with modal check
   protected handleInput() {
+    // Skip input handling if a modal is open
+    if (this.isModalOpen) return;
+    
     // Change lanes (left/right arrows or swipes)
     if (!this.isChangingLane) {
       if (Phaser.Input.Keyboard.JustDown(this.cursors.left!) && this.currentLane > 0) {
@@ -1125,6 +1163,28 @@ export abstract class BaseGameScene extends Phaser.Scene {
         }
       });
     }
+
+    if (this.backgroundMusicCorpseBride && this.backgroundMusicCorpseBride.isPlaying) {
+      this.tweens.add({
+        targets: this.backgroundMusicCorpseBride,
+        volume: 0,
+        duration: 1000,
+        onComplete: () => {
+          this.backgroundMusicCorpseBride.stop();
+        }
+      });
+    }
+    
+    if (this.backgroundMusicEndlessBride && this.backgroundMusicEndlessBride.isPlaying) {
+      this.tweens.add({
+        targets: this.backgroundMusicEndlessBride,
+        volume: 0,
+        duration: 1000,
+        onComplete: () => {
+          this.backgroundMusicEndlessBride.stop();
+        }
+      });
+    }
     
     // Short delay before showing game over to let collision sound play first
     this.time.delayedCall(300, () => {
@@ -1195,8 +1255,32 @@ export abstract class BaseGameScene extends Phaser.Scene {
       }
     ).setOrigin(0.5);
     
+    // Add leaderboard button
+    const leaderboardButton = this.add.text(
+      0,
+      gameOverImage.height * 0.4,
+      'Leaderboard',
+      {
+        fontFamily: 'BloodyTerror',
+        fontSize: '20px',
+        color: '#ff9adf',
+        align: 'center',
+        stroke: '#000000',
+        strokeThickness: 2
+      }
+    ).setOrigin(0.5)
+     .setInteractive({ useHandCursor: true });
+    
+    leaderboardButton.on('pointerdown', (_: Phaser.Input.Pointer, __: number, ___: number, event: Phaser.Types.Input.EventData) => {
+      event.stopPropagation();
+      this.leaderboardModal.show(
+        this.score,
+        GameConfig.isMobileDevice() ? 'mobile' : 'desktop'
+      );
+    });
+    
     // Add items to container
-    gameOverContainer.add([gameOverImage, finalScoreText, restartText]);
+    gameOverContainer.add([gameOverImage, finalScoreText, restartText, leaderboardButton]);
     
     // Add pulse effect to restart text
     this.tweens.add({
@@ -1216,14 +1300,59 @@ export abstract class BaseGameScene extends Phaser.Scene {
       ease: 'Power2'
     });
     
-    // Add tap to restart functionality
-    this.input.once('pointerdown', () => {
-      this.restartGame();
+    // Check if this is a high score
+    this.checkHighScore();
+    
+    // Listen for the space key to prevent it from bubbling to other handlers
+    this.input.keyboard!.on('keydown-SPACE', (event: KeyboardEvent) => {
+      if (this.isModalOpen) {
+        event.stopPropagation();
+        event.preventDefault();
+      } else {
+        this.restartGame();
+      }
     });
+    
+    // Add tap to restart functionality with safety check
+    this.input.on('pointerdown', () => {
+      if (!this.isModalOpen) {
+        this.restartGame();
+      }
+    }, this);
+  }
+
+  // Change from private to protected so it can be accessed by MobileGameScene
+  protected async checkHighScore(): Promise<void> {
+    try {
+      // Get the top 10 scores for this platform
+      const platform = GameConfig.isMobileDevice() ? 'mobile' : 'desktop';
+      const topScores = await this.leaderboardService.getTopScores(10, platform);
+      
+      // Check if current score would make the top 10
+      const isHighScore = topScores.length < 10 || this.score > topScores[topScores.length - 1].score;
+      
+      if (isHighScore) {
+        // Delay showing the name entry modal slightly to allow game over screen to appear first
+        this.time.delayedCall(1000, () => {
+          this.nameEntryModal.show(this.score, this.difficultyLevel);
+        });
+      }
+    } catch (error) {
+      console.error("Error checking high score:", error);
+    }
   }
 
   // Add restart method to reset everything including music
   protected restartGame() {
+    // Reset modal flag
+    this.isModalOpen = false;
+    
+    // Remove the pointerdown listener
+    this.input.off('pointerdown');
+    
+    // Remove keyboard listeners too
+    this.input.keyboard!.off('keydown-SPACE');
+    
     // Stop any playing music and sounds
     if (this.backgroundMusic) {
       this.backgroundMusic.stop();
@@ -1231,6 +1360,14 @@ export abstract class BaseGameScene extends Phaser.Scene {
     
     if (this.backgroundMusicAlt) {
       this.backgroundMusicAlt.stop();
+    }
+
+    if (this.backgroundMusicCorpseBride) {
+      this.backgroundMusicCorpseBride.stop();
+    }
+    
+    if (this.backgroundMusicEndlessBride) {
+      this.backgroundMusicEndlessBride.stop();
     }
     
     if (this.gameOverSound) {

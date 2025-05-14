@@ -20,10 +20,6 @@ export class AssetLoader {
       frameHeight: 64
     });
     
-    // Legacy player assets (kept as fallbacks)
-    this.scene.load.image('player', '/images/zombie_bride_back.png');
-    this.scene.load.image('player-left', '/images/zombie_bride_left.png');
-    this.scene.load.image('player-right', '/images/zombie_bride_right.png');
     
     // Obstacle assets
     this.scene.load.image('tombstone', '/images/tombstone.png');
@@ -55,6 +51,8 @@ export class AssetLoader {
     // Audio - Background Music
     this.scene.load.audio('background-music', '/music/spooky_scary_skeletons.mp3');
     this.scene.load.audio('background-music-alt', '/music/spooky_time.mp3');
+    this.scene.load.audio('background-music-corpse-bride', '/music/corpse_bride.mp3');
+    this.scene.load.audio('background-music-endless-bride', '/music/endless_bride.mp3');
     
     // Sound Effects
     this.scene.load.audio('start-sound', '/audio/start.mp3');

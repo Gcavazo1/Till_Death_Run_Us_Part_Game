@@ -1,0 +1,21 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Allow reading leaderboard entries
+    match /leaderboard/{entry} {
+      allow read: if true;
+      
+      // Only allow creates with valid data
+      allow create: if request.resource.data.score is number && 
+                      request.resource.data.name is string &&
+                      request.resource.data.name.size() <= 20 &&
+                      request.resource.data.timestamp is timestamp &&
+                      request.resource.data.platform is string &&
+                      request.resource.data.level is number;
+      
+      // Don't allow updates or deletes
+      allow update: if false;
+      allow delete: if false;
+    }
+  }
+} 

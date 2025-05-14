@@ -43,18 +43,18 @@ export interface GameMechanicsParameters {
  */
 const desktopMechanics: GameMechanicsParameters = {
   // Core gameplay
-  gameSpeed: 300,
+  gameSpeed: 340,
   playerSize: 58,
   
   // Spawn timing
-  obstacleSpawnDelay: 1600,
-  collectibleSpawnDelay: 200,
-  specialCollectibleSpawnDelay: 5000,
+  obstacleSpawnDelay: 1450,
+  collectibleSpawnDelay: 170,
+  specialCollectibleSpawnDelay: 7500,
   laneAvoidanceTime: 500,
   
   // Special collectibles
-  bouquetSpawnChance: 0.20,
-  weddingBandSpawnChance: 0.10,
+  bouquetSpawnChance: 0.2,
+  weddingBandSpawnChance: 0.05,
   
   // Score multiplier
   scoreMultiplier: 1,
@@ -87,23 +87,23 @@ const mobileMechanics: GameMechanicsParameters = {
   // Spawn timing - slower spawn rates to compensate for mobile 
   obstacleSpawnDelay: 1400,
   collectibleSpawnDelay: 150, // Increased from 180 to be slower than desktop
-  specialCollectibleSpawnDelay: 4500, // Increased from 4500 to be slower than desktop
+  specialCollectibleSpawnDelay: 7500, // Increased from 4500 to be slower than desktop
   laneAvoidanceTime: 500, // Keep the same
   
   // Special collectibles - keep the same chance rates
-  bouquetSpawnChance: 0.25,
-  weddingBandSpawnChance: 0.12,
+  bouquetSpawnChance: 0.2,
+  weddingBandSpawnChance: 0.05,
   
   // Score multiplier - longer duration to compensate for slower speed
   scoreMultiplier: 1,
-  multiplierDuration: 12000, // Increased from 8000 to compensate for slower movement
+  multiplierDuration: 10000, // Increased from 8000 to compensate for slower movement
   
   // Difficulty progression - slower progression on mobile
   difficultyLevel: 1,
-  pointsPerSpeedIncrease: 120, // Increased from 80 to slow down progression
-  speedIncreaseAmount: 20, // Reduced from 35 to make speed increases less dramatic
-  speedIncreasePercentage: 0.08, // Reduced from 0.12 for slower difficulty scaling
-  maxDifficultyLevel: 8,
+  pointsPerSpeedIncrease: 100, // Increased from 80 to slow down progression
+  speedIncreaseAmount: 30, // Reduced from 35 to make speed increases less dramatic
+  speedIncreasePercentage: 0.10, // Reduced from 0.12 for slower difficulty scaling
+  maxDifficultyLevel: 10,
   
   // Input settings
   swipeThreshold: 30, // Keep the same for easy controls

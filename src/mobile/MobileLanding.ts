@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { LeaderboardModal } from '../core/ui/LeaderboardModal';
 // AssetLoader import is no longer needed here as PreloadScene handles it.
 
 export class MobileLanding extends Phaser.Scene {
@@ -6,6 +7,9 @@ export class MobileLanding extends Phaser.Scene {
   private titleText1!: Phaser.GameObjects.Text;
   private titleText2!: Phaser.GameObjects.Text;
   private startText!: Phaser.GameObjects.Text;
+  private leaderboardButton!: Phaser.GameObjects.Text;
+  private leaderboardModal!: LeaderboardModal;
+  private isModalOpen: boolean = false;
 
   constructor() {
     super('MobileLanding');
@@ -72,6 +76,25 @@ export class MobileLanding extends Phaser.Scene {
       }
     ).setOrigin(0.5);
     
+    // Add leaderboard button
+    this.leaderboardButton = this.add.text(
+      gameWidth / 2,
+      gameHeight * 0.8,
+      'Leaderboard',
+      {
+        fontFamily: 'BloodyTerror',
+        fontSize: '28px',
+        color: '#ff9adf',
+        align: 'center',
+        stroke: '#000000',
+        strokeThickness: 2
+      }
+    ).setOrigin(0.5)
+     .setInteractive({ useHandCursor: true });
+    
+    // Initialize leaderboard modal
+    this.leaderboardModal = new LeaderboardModal(this);
+    
     // Add pulse animation to start text
     this.tweens.add({
       targets: this.startText,
@@ -83,10 +106,28 @@ export class MobileLanding extends Phaser.Scene {
       repeat: -1
     });
     
-    // Listen for tap to start
-    this.input.once('pointerdown', () => {
-      this.requestFullscreen();
-      this.startGame();
+    // Add subtle pulse animation to leaderboard button
+    this.tweens.add({
+      targets: this.leaderboardButton,
+      scale: { from: 1, to: 1.05 },
+      duration: 1000,
+      ease: 'Sine.easeInOut',
+      yoyo: true,
+      repeat: -1
+    });
+    
+    // Listen for tap on leaderboard button
+    this.leaderboardButton.on('pointerdown', (_: Phaser.Input.Pointer, __: number, ___: number, event: Phaser.Types.Input.EventData) => {
+      event.stopPropagation();
+      this.leaderboardModal.show(0, 'mobile');
+    });
+    
+    // Listen for tap to start (only when modal is not open)
+    this.input.on('pointerdown', () => {
+      if (!this.isModalOpen) {
+        this.requestFullscreen();
+        this.startGame();
+      }
     });
   }
   

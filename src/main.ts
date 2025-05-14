@@ -3,68 +3,54 @@ import Phaser from 'phaser'
 import { GameConfig } from './core/utils/GameConfig'
 
 // --- WAKE LOCK START ---
-// Type definition for WakeLockSentinel
-interface WakeLockSentinel extends EventTarget {
-    readonly released: boolean;
-    readonly type: string;
-    release(): Promise<void>;
-    onrelease: ((this: WakeLockSentinel, ev: Event) => any) | null;
-}
-
 // Modify the global Window interface
 declare global {
   interface Window {
     game: Phaser.Game;
   }
-  interface Navigator {
-      wakeLock?: { // Make wakeLock optional as it might not exist
-          request: (type: 'screen') => Promise<WakeLockSentinel>;
-      };
+}
+
+let wakeLockSentinel: any = null;
+
+// Function to acquire wake lock
+async function requestWakeLock() {
+  try {
+    // Check if wake lock API is available
+    if ('wakeLock' in navigator && navigator.wakeLock) {
+      // Use type assertion to handle interface differences
+      wakeLockSentinel = await (navigator.wakeLock as any).request('screen');
+      
+      console.log('Wake Lock is active');
+      
+      // Add event listener for when lock is released
+      if (wakeLockSentinel) {
+        wakeLockSentinel.addEventListener('release', () => {
+          console.log('Wake Lock was released');
+        });
+      }
+    }
+  } catch (error: any) {
+    console.error(`Wake Lock error: ${error.name || 'unknown'}, ${error.message || 'no message'}`);
   }
 }
 
-let wakeLock: WakeLockSentinel | null = null;
-
-// Function to request the wake lock
-const requestWakeLock = async () => {
-  // Check if wakeLock is supported and if a lock doesn't already exist or has been released
-  if ('wakeLock' in navigator && navigator.wakeLock && (wakeLock === null || wakeLock.released)) {
-    try {
-      wakeLock = await navigator.wakeLock.request('screen');
-      wakeLock.addEventListener('release', () => {
-        // Wake lock was released unexpectedly (e.g., page hidden, battery low)
-        console.log('Screen Wake Lock released automatically.');
-        // No need to re-request here; visibilitychange handles it if page becomes visible again
+// Function to release wake lock
+function releaseWakeLock() {
+  if (wakeLockSentinel) {
+    wakeLockSentinel.release()
+      .then(() => {
+        wakeLockSentinel = null;
+        console.log('Wake Lock released');
+      })
+      .catch((err: Error) => {
+        console.error(`Wake Lock release error: ${err.name}, ${err.message}`);
       });
-      console.log('Screen Wake Lock active.');
-    } catch (err: any) {
-      console.error(`Wake Lock request failed: ${err.name}, ${err.message}`);
-      wakeLock = null; // Ensure wakeLock is null if request fails
-    }
-  } else if (!('wakeLock' in navigator && navigator.wakeLock)) {
-    console.log('Wake Lock API not supported by this browser.');
-  } else {
-    console.log('Wake Lock already active or request attempted while existing lock present.');
   }
-};
-
-// Function to release the wake lock
-const releaseWakeLock = async () => {
-  if (wakeLock !== null && !wakeLock.released) {
-    try {
-        await wakeLock.release();
-        console.log('Screen Wake Lock explicitly released.');
-    } catch (err: any) {
-        console.error(`Wake Lock release failed: ${err.name}, ${err.message}`);
-    } finally {
-        wakeLock = null; // Set to null after attempting release
-    }
-  }
-};
+}
 
 // Handle visibility changes
 const handleVisibilityChange = async () => {
-    if (wakeLock !== null && document.visibilityState === 'hidden') {
+    if (wakeLockSentinel !== null && document.visibilityState === 'hidden') {
         // Release the lock when the tab is hidden
        await releaseWakeLock();
        console.log('Wake Lock released due to page visibility change (hidden).');

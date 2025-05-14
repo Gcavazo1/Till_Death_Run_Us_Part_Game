@@ -112,11 +112,33 @@ export class DesktopGameScene extends BaseGameScene {
       repeat: -1
     });
     
+    // Add leaderboard button
+    const leaderboardButton = this.add.text(
+      gameWidth / 2,
+      gameHeight * 0.8,
+      'LEADERBOARD',
+      {
+        fontFamily: 'BloodyTerror',
+        fontSize: '24px',
+        color: '#ffffff',
+        align: 'center',
+        stroke: '#000000',
+        strokeThickness: 2
+      }
+    ).setOrigin(0.5).setDepth(51)
+     .setInteractive({ useHandCursor: true });
+    
+    leaderboardButton.on('pointerdown', (_: Phaser.Input.Pointer, __: number, ___: number, event: Phaser.Types.Input.EventData) => {
+      event.stopPropagation();
+      this.leaderboardModal.show();
+    });
+    
     // Add elements to group
     this.startPrompt.add(overlay);
     this.startPrompt.add(titleText1);
     this.startPrompt.add(titleText2);
     this.startPrompt.add(startText);
+    this.startPrompt.add(leaderboardButton);
     
     // Add interaction to start the game
     this.input.once('pointerdown', () => {

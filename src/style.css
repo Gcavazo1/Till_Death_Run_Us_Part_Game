@@ -8,6 +8,14 @@
 }
 
 @font-face {
+  font-family: 'BloodyModes';
+  src: url('/fonts/BloodyModes.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
   font-family: 'Corpsy';
   src: url('/fonts/Corpsy-Regular.ttf') format('truetype');
   font-weight: normal;
@@ -26,7 +34,7 @@
 /* Font preloader - ensures fonts are loaded before they're used */
 body::after {
   content: 'Font Preloader';
-  font-family: 'October Crow', 'Corpsy', 'BloodyTerror';
+  font-family: 'October Crow', 'Corpsy', 'BloodyTerror', 'BloodyModes';
   position: absolute;
   left: -9999px;
   visibility: hidden;
