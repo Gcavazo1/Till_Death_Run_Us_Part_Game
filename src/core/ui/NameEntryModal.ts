@@ -124,8 +124,10 @@ export class NameEntryModal {
     this.nameInput.style.backgroundColor = '#460d5d';
     this.nameInput.style.color = 'white';
     this.nameInput.style.border = '1px solid #ff0033';
-    this.nameInput.style.borderRadius = '4px';
+    this.nameInput.style.borderRadius = '8px'; // Add rounded corners to input
+    this.nameInput.style.zIndex = '1001'; // Ensure high z-index
     this.nameInput.maxLength = 20;
+    this.nameInput.placeholder = 'Enter your name...';
     
     // Hide initially
     this.nameInput.style.display = 'none';
@@ -138,6 +140,20 @@ export class NameEntryModal {
       if (e.key === 'Enter') {
         this.submitScore();
       }
+      e.stopPropagation(); // Prevent keydown from propagating
+    });
+    
+    // Prevent click events from propagating
+    this.nameInput.addEventListener('mousedown', (e) => {
+      e.stopPropagation();
+    });
+    
+    this.nameInput.addEventListener('click', (e) => {
+      e.stopPropagation();
+    });
+    
+    this.nameInput.addEventListener('touchstart', (e) => {
+      e.stopPropagation();
     });
   }
   
@@ -169,13 +185,13 @@ export class NameEntryModal {
     container.setInteractive(new Phaser.Geom.Rectangle(-buttonWidth/2, -buttonHeight/2, buttonWidth, buttonHeight), Phaser.Geom.Rectangle.Contains);
     
     container.on('pointerdown', (_: Phaser.Input.Pointer, __: number, ___: number, event: Phaser.Types.Input.EventData) => {
-      event.stopPropagation();
-      callback();
+      event.stopPropagation(); // Prevent event from propagating
+      callback.call(this);
     });
     
     // Add hover effects
     container.on('pointerover', () => {
-      // Clear existing graphics
+      // Clear existing graphics and replace with new ones
       bg.clear();
       
       // Redraw with hover color
@@ -186,7 +202,7 @@ export class NameEntryModal {
     });
     
     container.on('pointerout', () => {
-      // Clear existing graphics
+      // Clear existing graphics and replace with new ones
       bg.clear();
       
       // Redraw with normal color
@@ -216,18 +232,39 @@ export class NameEntryModal {
     const gameWidth = this.scene.cameras.main.width;
     const gameHeight = this.scene.cameras.main.height;
     
-    // Calculate position for input (must convert from Phaser coordinates to DOM coordinates)
-    const scaleX = window.innerWidth / gameWidth;
-    const scaleY = window.innerHeight / gameHeight;
+    // Get the actual canvas element dimensions for better positioning
+    const canvas = this.scene.sys.game.canvas;
+    const canvasBounds = canvas.getBoundingClientRect();
     
-    const inputX = (gameWidth / 2 - 100) * scaleX;
-    const inputY = (gameHeight / 2) * scaleY;
+    // Calculate position for input
+    const centerX = canvasBounds.left + (canvasBounds.width / 2);
+    const centerY = canvasBounds.top + (canvasBounds.height / 2) - 20; // Position slightly above center
     
-    this.nameInput.style.left = `${inputX}px`;
-    this.nameInput.style.top = `${inputY}px`;
+    // Set input properties
+    this.nameInput.style.left = `${centerX - 100}px`;
+    this.nameInput.style.top = `${centerY}px`;
     this.nameInput.style.display = 'block';
     this.nameInput.value = '';
-    this.nameInput.focus();
+    
+    // Force display to be visible and ensure it's on top
+    this.nameInput.style.visibility = 'visible';
+    this.nameInput.style.opacity = '1';
+    this.nameInput.style.zIndex = '2000'; // Increase z-index to ensure it's above everything
+    
+    // Focus after a small delay to ensure it's visible first
+    setTimeout(() => {
+      this.nameInput.focus();
+    }, 200); // Increased delay for focus
+    
+    // Make sure the container is interactive to block clicks
+    this.container.removeAllListeners('pointerdown');
+    this.container.setInteractive(new Phaser.Geom.Rectangle(
+      -gameWidth, -gameHeight, gameWidth * 2, gameHeight * 2
+    ), Phaser.Geom.Rectangle.Contains);
+    
+    this.container.on('pointerdown', (_: Phaser.Input.Pointer, __: number, ___: number, event: Phaser.Types.Input.EventData) => {
+      event.stopPropagation();
+    });
     
     // Show modal with animation
     this.container.setVisible(true);

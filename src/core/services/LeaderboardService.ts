@@ -28,23 +28,34 @@ export class LeaderboardService {
   
   async getTopScores(count: number = 10, platform?: string): Promise<LeaderboardEntry[]> {
     try {
+      // Create base query
       let q = query(
         collection(db, this.COLLECTION_NAME),
-        orderBy('score', 'desc'),
-        limit(count)
+        orderBy('score', 'desc')
       );
       
+      // Add platform filter if specified
       if (platform) {
-        q = query(q, where('platform', '==', platform));
+        // Need to create a new query with the platform filter
+        q = query(
+          collection(db, this.COLLECTION_NAME),
+          where('platform', '==', platform),
+          orderBy('score', 'desc')
+        );
       }
+      
+      // Add limit after other filters
+      q = query(q, limit(count));
       
       const querySnapshot = await getDocs(q);
       
-      return querySnapshot.docs.map(doc => ({
+      const results = querySnapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data() as Omit<LeaderboardEntry, 'id'>,
         timestamp: (doc.data().timestamp as Timestamp).toDate() // Convert Firestore Timestamp to Date
       }));
+      
+      return results;
     } catch (error) {
       console.error("Error getting top scores:", error);
       return [];

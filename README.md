@@ -118,18 +118,6 @@ The zombie bride character uses a sprite sheet with:
 - Gothic-themed UI elements and fonts
 - Spooky soundtrack and sound effects
 
-### Leaderboard System
-
-A competitive leaderboard system has been integrated to enhance player engagement:
-
-- **Firebase Backend:** Scores are stored and managed using Firestore, providing a reliable and scalable solution.
-- **In-Game Modals:**
-    - **Leaderboard Display:** Players can view the top scores (all-time, desktop, mobile) in a themed modal.
-    - **Name Entry:** Upon achieving a high score, players can enter their name to be displayed on the leaderboard.
-- **Platform-Specific Scores:** The leaderboard can filter scores based on whether they were achieved on desktop or mobile.
-- **Real-time Updates:** Players can see their rank and how they stack up against others.
-- **Share Functionality:** Players can share their scores using the native device sharing options (on supported platforms/browsers when served over HTTPS).
-
 ## Credits
 
 - **Developer:** Gabriel Cavazos (GigaCode)

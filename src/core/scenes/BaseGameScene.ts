@@ -1,10 +1,11 @@
 import Phaser from 'phaser';
 import { GameMechanicsConfig } from '../utils/GameMechanicsConfig';
 import type { GameMechanicsParameters } from '../utils/GameMechanicsConfig';
-import { GameConfig } from '../utils/GameConfig';
+// import { AssetLoader } from '../utils/AssetLoader';
 import { LeaderboardService } from '../services/LeaderboardService';
 import { NameEntryModal } from '../ui/NameEntryModal';
 import { LeaderboardModal } from '../ui/LeaderboardModal';
+import { GameConfig } from '../utils/GameConfig';
 
 export abstract class BaseGameScene extends Phaser.Scene {
   // Game mechanics configuration (loaded based on platform)
@@ -1272,10 +1273,11 @@ export abstract class BaseGameScene extends Phaser.Scene {
      .setInteractive({ useHandCursor: true });
     
     leaderboardButton.on('pointerdown', (_: Phaser.Input.Pointer, __: number, ___: number, event: Phaser.Types.Input.EventData) => {
-      event.stopPropagation();
+      event.stopPropagation(); // Prevent event from bubbling
+      this.isModalOpen = true; // Set modal open flag
       this.leaderboardModal.show(
         this.score,
-        GameConfig.isMobileDevice() ? 'mobile' : 'desktop'
+        GameConfig.isMobileDevice() ? 'mobile' : 'all'
       );
     });
     
@@ -1321,7 +1323,7 @@ export abstract class BaseGameScene extends Phaser.Scene {
     }, this);
   }
 
-  // Change from private to protected so it can be accessed by MobileGameScene
+  // Add method to check for high score
   protected async checkHighScore(): Promise<void> {
     try {
       // Get the top 10 scores for this platform
@@ -1329,7 +1331,8 @@ export abstract class BaseGameScene extends Phaser.Scene {
       const topScores = await this.leaderboardService.getTopScores(10, platform);
       
       // Check if current score would make the top 10
-      const isHighScore = topScores.length < 10 || this.score > topScores[topScores.length - 1].score;
+      const isHighScore = this.score > 0 && 
+        (topScores.length < 10 || this.score > topScores[topScores.length - 1].score);
       
       if (isHighScore) {
         // Delay showing the name entry modal slightly to allow game over screen to appear first

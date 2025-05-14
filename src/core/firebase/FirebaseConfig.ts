@@ -1,8 +1,8 @@
 import { initializeApp } from 'firebase/app';
 import { getFirestore } from 'firebase/firestore';
-import { getAnalytics } from 'firebase/analytics';
+import { getAnalytics, isSupported } from 'firebase/analytics';
 
-// Ensure your .env file (and Vercel environment variables) are set up with these keys
+// Your web app's Firebase configuration
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
   authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
@@ -10,25 +10,44 @@ const firebaseConfig = {
   storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
   messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
   appId: import.meta.env.VITE_FIREBASE_APP_ID,
-  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID || "G-4FSFJTC4FT"
+  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID
 };
+
+// Validate required environment variables
+const requiredEnvVars = [
+  'VITE_FIREBASE_API_KEY',
+  'VITE_FIREBASE_AUTH_DOMAIN',
+  'VITE_FIREBASE_PROJECT_ID'
+];
+
+// Log warning for missing environment variables in development only
+if (import.meta.env.DEV) {
+  const missingVars = requiredEnvVars.filter(
+    varName => !import.meta.env[varName]
+  );
+  
+  if (missingVars.length > 0) {
+    console.warn(
+      `Missing required Firebase environment variables: ${missingVars.join(', ')}\n` +
+      'Firebase functionality may not work correctly.'
+    );
+  }
+}
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 export const db = getFirestore(app);
-export const analytics = getAnalytics(app);
 
-// Optional: Add a check for missing environment variables during development
-if (import.meta.env.DEV) {
-  for (const [key, value] of Object.entries(firebaseConfig)) {
-    if (value === undefined) {
-      // Construct the expected environment variable name for the warning
-      let expectedVarName = `VITE_FIREBASE_${key.replace(/([A-Z])/g, '_$1').toUpperCase()}`;
-      // Special case for apiKey as it doesn't follow the pattern directly in the original regex replace
-      if (key === 'apiKey') {
-        expectedVarName = 'VITE_FIREBASE_API_KEY';
-      }
-      console.warn(`Firebase config: Missing environment variable ${expectedVarName}. Please ensure all VITE_FIREBASE_... variables are set in your .env file.`);
+// Initialize Analytics only if supported by the browser
+export const initAnalytics = async () => {
+  try {
+    const analyticsSupported = await isSupported();
+    if (analyticsSupported) {
+      return getAnalytics(app);
     }
+    return null;
+  } catch (err) {
+    console.error("Analytics initialization error:", err);
+    return null;
   }
-} 
+}; 

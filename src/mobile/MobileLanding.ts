@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { LeaderboardModal } from '../core/ui/LeaderboardModal';
+// import { LeaderboardService } from '../core/services/LeaderboardService';
 // AssetLoader import is no longer needed here as PreloadScene handles it.
 
 export class MobileLanding extends Phaser.Scene {
@@ -119,14 +120,15 @@ export class MobileLanding extends Phaser.Scene {
     // Listen for tap on leaderboard button
     this.leaderboardButton.on('pointerdown', (_: Phaser.Input.Pointer, __: number, ___: number, event: Phaser.Types.Input.EventData) => {
       event.stopPropagation();
+      this.isModalOpen = true;
       this.leaderboardModal.show(0, 'mobile');
     });
     
     // Listen for tap to start (only when modal is not open)
     this.input.on('pointerdown', () => {
       if (!this.isModalOpen) {
-        this.requestFullscreen();
-        this.startGame();
+      this.requestFullscreen();
+      this.startGame();
       }
     });
   }
